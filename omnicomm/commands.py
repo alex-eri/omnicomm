@@ -111,7 +111,7 @@ class Cmd86(BaseCommand):
         reg_id, fw = self.value.get('reg_id', 0), self.value.get('firmware', 0)
         proto_class: type[Message] = reg_fw_cmd[(reg_id, fw, self.id)]
         data = b''
-        if value.get('rec_id') is None:
+        if self.value.get('rec_id') is None:
             return data
         msgs = self.value.get('msgs', []) or []
         for msg in msgs:
