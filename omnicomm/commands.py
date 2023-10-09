@@ -110,16 +110,15 @@ class Cmd86(BaseCommand):
     def pack(self, conf: dict | None = None) -> bytes:
         reg_id, fw = self.value.get('reg_id', 0), self.value.get('firmware', 0)
         proto_class: type[Message] = reg_fw_cmd[(reg_id, fw, self.id)]
-
         data = b''
+        if value.get('rec_id') is None:
+            return data
         msgs = self.value.get('msgs', []) or []
         for msg in msgs:
             _msg = self.pack_protobuf(msg, proto_class)
             length = len(_msg)
             data += struct.pack('<H', length)
             data += _msg
-
-
         return struct.pack(f'<{self.format}', *self.from_dict(self.value, conf or {})) + data
 
     @classmethod
