@@ -39,7 +39,7 @@ class BaseCommand:
 
     @classmethod
     def from_dict(cls, value: dict, conf: dict) -> tuple[int, ...]:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     def pack(self, conf: dict | None = None) -> bytes:
         return struct.pack(f'<{self.format}', *self.from_dict(self.value, conf or {}))
@@ -52,7 +52,7 @@ class BaseCommand:
 
     @classmethod
     def to_dict(cls, value: tuple[int, ...], conf: dict) -> dict:
-        raise NotImplementedError
+        raise NotImplementedError()
 
     @classmethod
     def unpack(cls, data: bytes, conf: dict | None = None) -> 'BaseCommand':
@@ -108,19 +108,20 @@ class Cmd86(BaseCommand):
         return value['rec_id'], int(omnicomm_time), value['priority']
 
     def pack(self, conf: dict | None = None) -> bytes:
+        msgs: list | None = self.value.get('msgs')
+        if not msgs:
+            return b''
+
         reg_id, fw = self.value.get('reg_id', 0), self.value.get('firmware', 0)
         proto_class: type[Message] = reg_fw_cmd[(reg_id, fw, self.id)]
 
         data = b''
-        msgs = self.value.get('msgs', []) or []
         for msg in msgs:
             _msg = self.pack_protobuf(msg, proto_class)
             length = len(_msg)
             data += struct.pack('<H', length)
             data += _msg
 
-        if not data:
-            return b''
         return struct.pack(f'<{self.format}', *self.from_dict(self.value, conf or {})) + data
 
     @classmethod
@@ -288,14 +289,14 @@ class Cmd95(Cmd86):
 #
 # class Cmd9E(BaseCommand):
 #     id: int = 0x9E
-#
-#
-# class Cmd9F(Cmd86):
-#     id: int = 0x9F
-#
-#
-# class CmdA0(Cmd87):
-#     id: int = 0xA0
+
+
+class Cmd9F(Cmd86):
+    id: int = 0x9F  # noqa: A003
+
+
+class CmdA0(Cmd87):
+    id: int = 0xA0  # noqa: A003
 
 
 commands = {}

@@ -4,9 +4,6 @@ from omnicomm import commands, protocol
 
 
 class Cmd85Test(TestCase):
-    def setUp(self) -> None:
-        protocol.Protocol.load_command_proto()
-
     def test_simple(self):
         msg = bytes.fromhex('67F30000')
         cmd85 = commands.Cmd85.unpack(msg)
@@ -34,11 +31,28 @@ class Cmd86Test(TestCase):
         self.assertTrue(cmd86.value == {})
         self.assertTrue(commands.Cmd86(cmd86.value).pack() == b'')
 
+        data = commands.Cmd86({'rec_id': 1, 'omnicomm_time': 2, 'priority': 0}).pack()
+        self.assertTrue(commands.Cmd86.unpack(data).value == {})
+
+        data = commands.Cmd86({'rec_id': 1, 'unix_time': commands.Cmd86.BASE_TIME, 'priority': 0}).pack()
+        self.assertTrue(commands.Cmd86.unpack(data).value == {})
+
+
+class Cmd87Test(TestCase):
+    def test_simple(self):
+        value = {'rec_id': 123}
+        data = commands.Cmd87(value).pack()
+        self.assertTrue(commands.Cmd87.unpack(data).value == value)
+
+
+class Cmd88Test(TestCase):
+    def test_simple(self):
+        value = {'rec_id': 456}
+        data = commands.Cmd88(value).pack()
+        self.assertTrue(commands.Cmd88.unpack(data).value == value)
+
 
 class Cmd93Test(TestCase):
-    def setUp(self) -> None:
-        protocol.Protocol.load_command_proto()
-
     def test_simple(self):
         msg = bytes.fromhex('')
         cmd93 = commands.Cmd93.unpack(msg)
@@ -49,9 +63,6 @@ class Cmd93Test(TestCase):
 
 
 class Cmd94Test(TestCase):
-    def setUp(self) -> None:
-        protocol.Protocol.load_command_proto()
-
     def test_simple(self):
         msg = bytes.fromhex('c4a6b51b')
         cmd94 = commands.Cmd94.unpack(msg)
@@ -76,3 +87,28 @@ class Cmd95Test(TestCase):
         )
         cmd95 = commands.Cmd95.unpack(msg)
         self.assertTrue(commands.Cmd86(cmd95.value).pack() == msg)
+
+
+class Cmd9FTest(TestCase):
+    def setUp(self) -> None:
+        protocol.Protocol.load_command_proto(
+            {
+                0x9F: 'omnicomm.proto.profi_optim_lite_pb2.RecReg',
+            }
+        )
+
+    def test_simple(self):
+        msg = bytes.fromhex(
+            '67f30000ae8b12080044000a01011308ae97ca4020072800300038e807407c50'
+            'cc01142b08fec785940410d69bbce6021803208802280830e0202c3308001000'
+            '18e20220003443083810be10180444'
+        )
+        cmd9f = commands.Cmd9F.unpack(msg)
+        self.assertTrue(commands.Cmd86(cmd9f.value).pack() == msg)
+
+
+class CmdA0Test(TestCase):
+    def test_simple(self):
+        value = {'rec_id': 123}
+        data = commands.CmdA0(value).pack()
+        self.assertTrue(commands.CmdA0.unpack(data).value == value)
